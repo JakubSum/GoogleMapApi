@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">GoogleMaps</string>
     <string name="title_activity_maps">MapsActivity</string>
+    <string name="search">🔎</string>
+    <string name="dlugosc">Długość</string>
+    <string name="szerokosc">Szerokość</string>
 </resources>
