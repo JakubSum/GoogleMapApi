@@ -28,6 +28,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import java.io.IOException
+import java.sql.Types.NULL
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -159,6 +160,35 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
                 inputLong.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                     if (!hasFocus) {
+                        if (inputLong.text.toString().isEmpty()) {
+                            inputLong.setText("0")
+                        }
+                        try {
+                            if (inputLong.text.toString().toDouble() > 90) {
+                                inputLong.setText("90")
+                            }
+                            if (inputLong.text.toString().toDouble() < -90) {
+                                inputLong.setText("-90")
+                            }
+                        } catch (e: IOException) {
+                            inputLong.setText("0")
+                            e.printStackTrace()
+                            Log.e("IO", "IOException: " + e.message)
+                            Toast.makeText(
+                                applicationContext,
+                                "IOException: " + e.message,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } catch (e: NumberFormatException) {
+                            inputLong.setText("0")
+                            e.printStackTrace()
+                            Log.e("NumberFormat", "NumberFormatException: " + e.message)
+                            Toast.makeText(
+                                applicationContext,
+                                "NumberFormatException: " + e.message,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                         closeKeyboard(inputLong)
                     }
                 }
@@ -166,6 +196,27 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         inputWidth.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
             if (!hasFocus) {
                 closeKeyboard(inputWidth)
+                if(inputWidth.text.toString().isEmpty()){
+                    inputWidth.setText("0")
+                }
+                try{
+                    if(inputWidth.text.toString().toDouble() > 180){
+                        inputWidth.setText("180")
+                    }
+                    if(inputWidth.text.toString().toDouble() < -180){
+                        inputWidth.setText("-180")
+                    }
+                } catch (e: IOException) {
+                    inputWidth.setText("0")
+                    e.printStackTrace()
+                    Log.e("IO", "IOException: " + e.message)
+                    Toast.makeText(applicationContext, "IOException: " + e.message, Toast.LENGTH_SHORT).show()
+                } catch (e: NumberFormatException) {
+                    inputWidth.setText("0")
+                    e.printStackTrace()
+                    Log.e("NumberFormat", "NumberFormatException: " + e.message)
+                    Toast.makeText(applicationContext, "NumberFormatException: " + e.message, Toast.LENGTH_SHORT).show()
+                }
             }
         }
 
@@ -186,30 +237,58 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         inputLong.setOnEditorActionListener { v, actionId, event ->
             if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE ||
                 event?.keyCode == KeyEvent.KEYCODE_ENTER) {
-                if(inputLong.text.toString().isEmpty()){
+                if (inputLong.text.toString().isEmpty()) {
                     inputLong.setText("0")
                 }
                 try {
-                if(inputLong.text.toString().toDouble() > 90){
-                    inputLong.setText("90")
-                }
-                if(inputLong.text.toString().toDouble() < -90){
-                    inputLong.setText("-90")
-                }
+                    if (inputLong.text.toString().toDouble() > 90) {
+                        inputLong.setText("90")
+                    }
+                    if (inputLong.text.toString().toDouble() < -90) {
+                        inputLong.setText("-90")
+                    }
                 } catch (e: IOException) {
                     inputLong.setText("0")
                     e.printStackTrace()
                     Log.e("IO", "IOException: " + e.message)
-                    Toast.makeText(applicationContext, "IOException: " + e.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        applicationContext,
+                        "IOException: " + e.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 } catch (e: NumberFormatException) {
                     inputLong.setText("0")
                     e.printStackTrace()
                     Log.e("NumberFormat", "NumberFormatException: " + e.message)
-                    Toast.makeText(applicationContext, "NumberFormatException: " + e.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        applicationContext,
+                        "NumberFormatException: " + e.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
                 closeKeyboard(inputLong)
-                inputWidth.requestFocus()
-                openKeyboard(inputWidth)
+                if (inputWidth.text.toString() != "") {
+                    googleMap.clear()
+                    new_place = LatLng(
+                        inputLong.text.toString().toDouble(),
+                        inputWidth.text.toString().toDouble()
+                    )
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLng(new_place))
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new_place, 15f))
+                    var newMarker =
+                        MarkerOptions().position(new_place).title("Your selected location")
+                    googleMap.addMarker(newMarker)
+                    inputLong.setText(null)
+                    inputWidth.setText(null)
+                    layoutLong.startAnimation(input_anim_out)
+                    layoutWidth.startAnimation(input_anim_out)
+                    layoutLong.visibility = View.INVISIBLE
+                    layoutWidth.visibility = View.INVISIBLE
+                    flag = false
+                } else {
+                    inputWidth.requestFocus()
+                    openKeyboard(inputWidth)
+                }
                 true
             } else {
                 false
@@ -243,6 +322,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
                 closeKeyboard(inputWidth)
                 inputWidth.clearFocus()
+                if(inputLong.text.toString() == "") {
+                    inputLong.requestFocus()
+                    openKeyboard(inputLong)
+                }else{
                 googleMap.clear()
                 new_place = LatLng(
                     inputLong.text.toString().toDouble(),
@@ -259,6 +342,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 layoutWidth.startAnimation(input_anim_out)
                 layoutLong.visibility = View.INVISIBLE
                 layoutWidth.visibility = View.INVISIBLE
+                    flag = false
+                }
                 true
             } else {
                 false
